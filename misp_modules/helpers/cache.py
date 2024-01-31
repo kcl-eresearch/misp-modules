@@ -35,10 +35,14 @@ if password and os.path.isfile(password):
     with open(password, 'r') as file:
         password = file.read().strip()
 
+redis_ssl = hostname.startswith("tls://")
+if redis_ssl:
+    hostname = hostname[6:]
+
 def selftest(enable=True):
     if not enable:
         return False
-    r = redis.Redis(host=hostname, port=port, db=db, password=password)
+    r = redis.Redis(host=hostname, port=port, db=db, password=password, ssl=redis_ssl)
     try:
         r.ping()
     except Exception:
@@ -48,7 +52,7 @@ def selftest(enable=True):
 def get(modulename=None, query=None, value=None, debug=False):
     if (modulename is None or query is None):
         return False
-    r = redis.Redis(host=hostname, port=port, db=db, password=password,decode_responses=True)
+    r = redis.Redis(host=hostname, port=port, db=db, password=password, ssl=redis_ssl, decode_responses=True)
     h = hashlib.sha1()
     h.update(query.encode('UTF-8'))
     hv = h.hexdigest()
@@ -66,7 +70,7 @@ def get(modulename=None, query=None, value=None, debug=False):
 
 
 def flush():
-    r = redis.StrictRedis(host=hostname, port=port, db=db, password=password, decode_responses=True)
+    r = redis.StrictRedis(host=hostname, port=port, db=db, password=password, ssl=redis_ssl, decode_responses=True)
     returncode = r.flushdb()
     return returncode
 
